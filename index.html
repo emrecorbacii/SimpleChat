@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WEBSOCKET</title>
+    <script src="http://localhost:3000/socket.io/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    
+    <script>
+    $(()=>{
+        const socket= io.connect('http://localhost:3000/',{
+            reconnectionAttempts : 5,
+            reconnectionDelay: 3000,
+        //  reconnection:false
+        });
+        
+        socket.on('reconnect_attempt', () => {
+                $('.reconnnectStatus').html('Yeniden bağlanmaya çalışılıyor.');
+            });
+        socket.on('reconnect_error', () => {
+                setTimeout(() => {
+                $('.reconnnectStatus').html('Yeniden bağlanma başarısız.');
+                },1500);
+            });
+        socket.on('reconnect', () => {
+                $('.reconnnectStatus').html('Yeniden bağlanma başarılı.');
+            });
+
+
+
+        
+
+
+
+
+        $('#joinRoom').on('click',()=>{
+            socket.emit('joinRoom',
+            {
+             roomName:$('#roomName').val(),
+             username:$('#userName').val()
+            });
+        });
+
+        $('#leaveRoom').on('click',()=>{
+            socket.emit('leaveRoom',
+            {
+             roomName:$('#roomName').val(),
+             username:$('#userName').val()
+            });
+        });
+
+        socket.on('newJoin',(data)=>{
+            $('#count').html(data.count+' kişi var');   
+            $('.logs').append('<div> '+ data.username +' Odaya  girdi</div <br>'); 
+        });
+
+        socket.on('leavedRoom',(data)=>{
+            $('#count').html(data.count+' kişi var');
+            $('.logs').append('<div> '+ data.username +' Odadan  ayrıldı</div <br>');
+        }); 
+
+        socket.on('log',(data)=>{
+           
+              
+            $('#roomName,#userName,#joinRoom').attr('disabled','disabled');
+            $('#leaveRoom').show();
+            
+            
+        });
+
+        socket.on('leavedLog',(data)=>{
+           
+            $('.logs').empty().append('<div> '+ data.username +' Odadan  ayrıldı</div <br>'); 
+            $('#roomName,#userName,#joinRoom').removeAttr('disabled');
+            $('#leaveRoom').hide();
+            $('#count').empty();
+            
+        });
+    });
+    </script>
+</head>
+
+<body>
+<div style="float:left">
+Oda adı:<input id="roomName" ><br>
+İsim:<input id="userName">
+<button id="joinRoom" >Join</button>
+<button id="leaveRoom" style="display: none">Leave</button>
+<div class="logs" ></div>
+<div class="reconnectStatus"></div>
+</div>
+<div id="count" style="float:left;margin-left:10%"></div>
+
+
+</body>
+</html>
